@@ -46,17 +46,31 @@ with st.expander("Check the complete dataset:"):
 # ----- Extracting some basic information from the dataset -----
 
 # TODO: Ex 2.2: What is the min and max release years?
-min_year = None
-max_year = None
+min_year = movies_df['release_year'].min()  # TODO
+max_year = movies_df['release_year'].max()  # TODO
 
 # TODO: Ex 2.3: How many director names are missing values (NaN)?
-num_missing_directors = None
+num_missing_directors = movies_df['director'].isnull().sum()  # TODO
 
 # TODO: Ex 2.4: How many different countries are there in the data?
-n_countries = None
+
+all_countries = []
+
+for entry in movies_df["country"]:
+    if isinstance(entry, list):  
+        all_countries.extend([country.strip().strip(",") for country in entry])  
+    elif isinstance(entry, str):  
+        all_countries.extend([country.strip().strip(",") for country in entry.split(", ")])
+
+unique_countries = {country for country in set(all_countries) if country.lower() != "unknown"}
+unique_countries = {country for country in unique_countries if country.lower() != ""}
+
+print(unique_countries)
+
+n_countries = len(unique_countries)
 
 # TODO: Ex 2.5: How many characters long are on average the title names?
-avg_title_length = None
+avg_title_length = movies_df["title_length"].mean()
 
 
 # ----- Displaying the extracted information metrics -----
@@ -82,7 +96,19 @@ year = cols2[0].number_input("Select a year:", min_year, max_year, 2005)
 
 # TODO: Ex 2.6: For a given year, get the Pandas Series of how many movies and series 
 # combined were made by every country, limit it to the top 10 countries.
-top_10_countries = None
+
+filtered_data = movies_df.loc[movies_df["release_year"] == year]
+
+all_countries = []
+for entry in filtered_data["country"]:
+    if isinstance(entry, list):  
+        all_countries.extend(entry)
+    elif isinstance(entry, str):  
+        all_countries.extend(entry.split(", "))
+
+country_counts = pd.Series(all_countries).value_counts()
+
+top_10_countries = country_counts.head(10) 
 
 # print(top_10_countries)
 if top_10_countries is not None:
@@ -102,14 +128,18 @@ st.write("##")
 st.header("Avg Duration of Movies by Year")
 
 # TODO: Ex 2.7: Make a line chart of the average duration of movies (not TV shows) in minutes for every year across all the years. 
-movies_avg_duration_per_year = None
+movies_avg_duration_per_year = movies_only_df.groupby("release_year")["duration_min"].mean()
 
 if movies_avg_duration_per_year is not None:
     fig = plt.figure(figsize=(9, 6))
 
     # plt.plot(...# TODO: generate the line plot using plt.plot() and the information from movies_avg_duration_per_year (the vertical axes with the minutes value) and its index (the horizontal axes with the years)
 
+    plt.plot(movies_avg_duration_per_year.index, movies_avg_duration_per_year.values)
+
     plt.title("Average Duration of Movies Across Years")
+    plt.xlabel("Year")
+    plt.ylabel("Average Duration (minutes)")
 
     st.pyplot(fig)
 
